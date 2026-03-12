@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang ="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>{% block title %}RBL Shop{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <div class="header-inside">
+                <div class="header-logo"><a href="{% url 'home' %}"><img src="{% static 'images/TemporaryLogo.png' %}" alt="Logo" class="logo"></a></div>
+                <div class="header-search-bar-container">
+                    <form method="get" class="product-search-form">
+                        <div class="search-bar">
+                            <input type="text" name="search" placeholder="Search products...">
+                            <button type="submit"><img src="{% static 'images/search-svgrepo-com.png' %}" alt="Search"></button>
+                        </div>
+                    </form>
+                </div>
+                <div class="header-actions">
+                    <div class="user-dropdown">
+                        <a href="{% url 'login' %}">
+                            <button class="user-button">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </button>
+                        </a>
+                    </div>
+                    <a href="userCart.html">
+                        <button class="cart-button">
+                            <img src="{% static 'images/cart-shopping-svgrepo-com.png' %}" alt="cart">
+                        </button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <nav>
+            <div class="nav-spacer">
+                <a href="{% url 'home' %}">Home</a>
+                <div class="dropdown">
+                    <button class="dropbtn">Categories 
+                    <span class="caret"></span></i>
+                    </button>
+                </div>
+                <div class="dropdown">
+                    <button class="dropbtn">Brands 
+                    <span class="caret"></span></i>
+                    </button>
+                </div>
+                <a href="{% url 'catalog' %}">All Products</a>
+            </div>
+        </nav>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+    <div class="footer-top">
+        <img src="{% static 'images/TemporaryLogo.png' %}" alt="Logo" class="footer-logo">
+        <div class="footer-col">
+            <h4>Explore</h4>
+            <ul>
+                <li><a href="{% url 'home' %}">Home</a></li>
+                 <li><a href="{% url 'catalog' %}">All Products</a></li>
+                 <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'register' %}">Sign Up</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Support</h4>
+            <ul>
+                <li><a href="#">Contact Us</a></li>
+                <li><a href="#">FAQs</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+            </ul>
+        </div>
+    </div>
+    <p>&copy; 2026 RBL.</p>
+</footer>
+</body>
+</html>

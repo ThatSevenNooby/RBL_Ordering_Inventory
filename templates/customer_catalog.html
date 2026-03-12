@@ -1,0 +1,67 @@
+{% extends 'base_customer.html' %}
+{% load static %}
+
+{% block title %}RBL Shop Catalog{% endblock %}
+
+{% block content %}
+
+<main>
+    <div class="product-page-container">
+        <div class="category-list">
+            <a href="" class="category-link">All</a>
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+            <h2>Categories</h2>
+            <a href="" class="category-link">Batteries</a>
+            <a href="" class="category-link">Brakes</a>
+            <a href="" class="category-link">Electrical</a>
+            <a href="" class="category-link">Engine Parts</a>
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+            <h2>Brands</h2>
+            <a href="" class="category-link">Arisun</a>
+            <a href="" class="category-link">Caltex</a>
+            <a href="" class="category-link">GT Tunggal</a>
+            <a href="" class="category-link">Motolite</a>
+        </div>
+        <div class="products-container">
+            <div class="product-filters">
+                <form method="get" action="" class="filter-form">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="sort">Sort By:</label>
+                            <select name="sort" id="sort">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="price_low">Price: Low to High</option>
+                                <option value="price_high">Price: High to Low</option>
+                                <option value="name_asc">Name: A-Z</option>
+                                <option value="name_desc">Name: Z-A</option>
+                                <option value="stock_high">Stock: High to Low</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="filter-btn">Apply Filters</button>
+                        <a href="userProduct" class="clear-filter-btn">Clear All</a>
+                    </div>
+                </form>
+            </div>
+
+            <p class="product-count">Showing products</p>
+
+            <div class="product-grid">
+                <div class="product-card">
+                    <a href="{% url 'product' %}">
+                        <div class="product-image-wrapper">
+                            <img src="{% static 'images/oilfilter.png' %}" alt="">
+                        </div>
+                        </a>
+                        <a href="{% url 'product' %}"><h3>FC-158 Fuel Filter</h3></a>
+                        <p class="product-category">Engine Parts</p>
+                        <p class="product-brand">VIC</p>
+                        <p class="product-price">₱1,200.00</p>
+                        <p class="product-stock">In Stock: 10</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{% endblock %}
