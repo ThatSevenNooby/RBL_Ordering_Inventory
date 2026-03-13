@@ -7,14 +7,22 @@
 <main>
     <div class='product-details-container'>
         <div class="product-image">
-            <img src="{% static 'images/oilfilter.png' %}" alt="">
+            {% if product.image_path %}
+                <img src="{{ product.image_path.url }}" alt="{{ product.product_name }}">
+            {% else %}
+                <img src="{% static 'images/oilfilter.png' %}" alt="Placeholder">
+            {% endif %}
         </div>
         <div class="product-details">
-            <h2>FC-158 Fuel Filter</h2>
-            <p>VIC</p>
+            <h2>{{ product.product_name }}</h2>
+            <p>{{ product.brand.brand_name }}</p>
             <hr>
-            <h3>₱1,200.00</h3>
-            <p><strong>Stock:</strong>10</p>
+            <h3>{{ product.product_name }}</h3>
+            {% if product.quantity > 0 %}
+                <p><strong>Stock:</strong> {{ product.quantity }} available</p>
+            {% else %}
+                <p style="color: red;"><strong>Out of Stock</strong></p>
+            {% endif %}
             <form method="POST" action="">
                 <input type="hidden" name="product_id" value="">
                 <div>
@@ -25,7 +33,7 @@
             </form>
             <hr>
             <h2>Description</h2>
-            <p>A heavy-duty diesel engine oil specifically designed to lubricate turbocharged and naturally aspirated diesel engines that require API CD performance lubricants in price sensitive markets or in conditions that require frequent oil changes.</p>
+            <p>{{ product.description }}</p>
         </div>
     </div>
 </main>

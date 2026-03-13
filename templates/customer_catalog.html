@@ -11,16 +11,14 @@
             <a href="" class="category-link">All</a>
             <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
             <h2>Categories</h2>
-            <a href="" class="category-link">Batteries</a>
-            <a href="" class="category-link">Brakes</a>
-            <a href="" class="category-link">Electrical</a>
-            <a href="" class="category-link">Engine Parts</a>
+            {% for category in categories %}
+                <a href="#" class="category-link">{{ category.category_name }}</a>
+            {% endfor %}
             <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
             <h2>Brands</h2>
-            <a href="" class="category-link">Arisun</a>
-            <a href="" class="category-link">Caltex</a>
-            <a href="" class="category-link">GT Tunggal</a>
-            <a href="" class="category-link">Motolite</a>
+            {% for brand in brands %}
+                <a href="#" class="category-link">{{ brand.brand_name }}</a>
+            {% endfor %}
         </div>
         <div class="products-container">
             <div class="product-filters">
@@ -47,18 +45,38 @@
             <p class="product-count">Showing products</p>
 
             <div class="product-grid">
-                <div class="product-card">
-                    <a href="{% url 'product' %}">
-                        <div class="product-image-wrapper">
-                            <img src="{% static 'images/oilfilter.png' %}" alt="">
-                        </div>
+                {% for product in products %}
+                
+                    <div class="product-card">
+                        <a href="{% url 'product' product.id %}">
+                            <div class="product-image-wrapper">
+                                {% if product.image_path %}
+                                    <img src="{{ product.image_path.url }}" alt="{{ product.product_name }}">
+                                {% else %}
+                                    <img src="{% static 'images/oilfilter.png' %}" alt="Placeholder for {{ product.product_name }}">
+                                {% endif %}
+                            </div>
                         </a>
-                        <a href="{% url 'product' %}"><h3>FC-158 Fuel Filter</h3></a>
-                        <p class="product-category">Engine Parts</p>
-                        <p class="product-brand">VIC</p>
-                        <p class="product-price">₱1,200.00</p>
-                        <p class="product-stock">In Stock: 10</p>
-                </div>
+                        
+                        <a href="{% url 'product' product.id %}">
+                            <h3>{{ product.product_name }}</h3>
+                        </a>
+                        
+                        <p class="product-category">{{ product.category.category_name }}</p>
+                        <p class="product-brand">{{ product.brand.brand_name }}</p>
+                        
+                        <p class="product-price">₱{{ product.price }}</p>
+                        
+                        {% if product.quantity > 0 %}
+                            <p class="product-stock" style="color: green;">In Stock: {{ product.quantity }}</p>
+                        {% else %}
+                            <p class="product-stock" style="color: red;">Out of Stock</p>
+                        {% endif %}
+                    </div>
+                    
+                {% empty %}
+                    <p>No products are currently available in the catalog.</p>
+                {% endfor %}
             </div>
         </div>
     </div>
