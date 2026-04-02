@@ -1,0 +1,162 @@
+{% extends 'store_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}RBL Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<main>
+    <div class ="add-button-section">
+        <h2>All Products</h2>
+        <button class="add-button" id="openFormBtn">+ Add Product </button>
+    </div>
+
+    <dialog id="addProductModal">
+        <form method="POST" action="{% url 'dashboard_products' %}" enctype="multipart/form-data" id="addProductForm">
+            {% csrf_token %}
+            <h2>Add New Product</h2>
+            
+            <div class="input-group">
+                <label for="product_name">Product Name:</label>
+                <input type="text" id="product_name" name="product_name" required>
+            </div>
+
+            <div class="input-group">
+                <label for="category_id">Category:</label>
+                <select name="category_id" id="category_id" required>
+                    <option value="" disabled selected>Select a Category</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.category_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="brand_id">Brand:</label>
+                <select name="brand_id" id="brand_id" required>
+                    <option value="" disabled selected>Select a Brand</option>
+                    {% for brand in brands %}
+                        <option value="{{ brand.id }}">{{ brand.brand_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="price">Price (₱):</label>
+                <input type="number" step="0.01" id="price" name="price" required>
+            </div>
+
+            <div class="input-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" required>
+            </div>
+
+            <div class="input-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" rows="3" required></textarea>
+            </div>
+
+            <div class="input-group">
+                <label for="image">Product Image:</label>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="cancelBtn">Cancel</button>
+                <button type="submit" id="submitBtn">Save Product</button>
+            </div>
+        </form>
+    </dialog>
+    
+    <div class="admin-products-container">
+        <form method="get" action="" class="filter-controls" style="margin-bottom:1rem;">
+            <div class="search-box">
+                <input type="text" name="search" placeholder="Search products..." value="{{ request.GET.search }}">
+            </div>
+            
+            <div class="sort-box">
+                <label for="sort">Sort by:</label>
+                <select name="sort" id="sort">
+                    <option value="id_asc" {% if request.GET.sort == 'id_asc' %}selected{% endif %}>ID (Asc)</option>
+                    <option value="id_desc" {% if request.GET.sort == 'id_desc' %}selected{% endif %}>ID (Desc)</option>
+                    <option value="name_asc" {% if request.GET.sort == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="name_desc" {% if request.GET.sort == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price (Low-High)</option>
+                    <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price (High-Low)</option>
+                    <option value="qty_asc" {% if request.GET.sort == 'qty_asc' %}selected{% endif %}>Quantity (Low-High)</option>
+                    <option value="qty_desc" {% if request.GET.sort == 'qty_desc' %}selected{% endif %}>Quantity (High-Low)</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="filter-btn">Apply</button>
+            
+            <a href="{% url 'dashboard_products' %}" class="clear-btn">Clear</a>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Time Stamp</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Brand</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Description</th>
+                    <th>Image</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.created_at|date:"Y-m-d H:i:s" }}</td>
+                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.category.category_name }}</td>
+                        <td>{{ product.brand.brand_name }}</td>
+                        
+                        <td>₱{{ product.price|floatformat:2 }}</td>
+                        
+                        <td>{{ product.quantity }}</td>
+                        
+                        <td title="{{ product.description }}">
+                            {{ product.description|truncatechars:40 }}
+                        </td>
+                        
+                        <td>
+                            {% if product.image_path %}
+                                <img src="{{ product.image_path.url }}" alt="{{ product.product_name }}" style="width: 50px; height: auto;">
+                            {% else %}
+                                <img src="{% static 'images/oilfilter.png' %}" alt="No Image" style="width: 50px; height: auto;">
+                            {% endif %}
+                        </td>
+                        
+                        <td>
+                            <a href="{% url 'product' product.id %}">View</a> | 
+                            
+                            <button type="button" class="editBtn" style="background:none; border:none; color:blue; text-decoration:underline; cursor:pointer; padding:0; font-size:1rem;"
+                                data-id="{{ product.id }}"
+                                data-name="{{ product.product_name }}"
+                                data-category="{{ product.category.id }}"
+                                data-brand="{{ product.brand.id }}"
+                                data-price="{{ product.price }}"
+                                data-qty="{{ product.quantity }}"
+                                data-desc="{{ product.description }}">
+                                Edit
+                            </button> | 
+                            
+                            <a href="{% url 'delete_product' product.id %}" onclick="return confirm('Are you sure you want to delete {{ product.product_name }}?');" style="color: #ff1e00;">Delete</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan='10'>No products available.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+<script src="{% static 'js/add_modal_script.js' %}"></script>
+
+{% endblock %}

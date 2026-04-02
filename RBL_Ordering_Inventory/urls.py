@@ -17,8 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
-from accounts.views import login_view, logout_view
+from accounts.views import login_view, logout_view, register_view
 from catalog.views import catalog_view, product_view
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,7 +32,10 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
 
-    path('register/', TemplateView.as_view(template_name='customer_register.html'), name='register'),
     path('catalog/', catalog_view, name='catalog'),
     path('product/<int:product_id>/', product_view, name='product'),
+    path('register/', register_view, name='register'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

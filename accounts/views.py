@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
+from .models import CustomUser
 
 def login_view(request):
     if request.method == 'POST':
@@ -21,3 +23,50 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
     return redirect('home')
+
+def register_view(request):
+    if request.method == 'POST':
+        first_name = request.POST.get('firstname')
+        middle_name = request.POST.get('middlename')
+        last_name = request.POST.get('lastname')
+        birthdate = request.POST.get('birthdate')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone') 
+        address = request.POST.get('address')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm-password')
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return redirect('register')
+            
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, "That username is already taken!")
+            return redirect('register')
+
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, "An account with that email already exists!")
+            return redirect('register')
+
+        try:
+            user = CustomUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                middle_name=middle_name,    
+                contact_number=phone,       
+                address=address,            
+                birthdate=birthdate         
+            )
+
+            login(request, user)
+            return redirect('home')
+
+        except Exception as e:
+            messages.error(request, f"An error occurred: {e}")
+            return redirect('register')
+
+    return render(request, 'customer_register.html')

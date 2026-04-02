@@ -4,6 +4,7 @@ body {
   padding: 0;
   box-sizing: border-box;
   font-family: Arial, Helvetica, sans-serif;
+  background: #f5f7f9;
 }
 .login-container-container {
   height: 90vh;
@@ -1156,6 +1157,135 @@ aside {
   background: #ff1e00;
   color: white;
   border-bottom: 2px solid #ff1e00;
+}
+
+/* Add Button Section */
+.add-button-section {
+  display: flex;
+  gap: 15px;
+  margin: 20px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;     
+}
+
+.add-button {
+  padding: 10px 25px;
+  background: #ff1e00;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-btn:hover {
+  background: #e61c00;
+}
+/* Modal Style */
+
+/* 1. Modal Backdrop (Dims the background behind the popup) */
+dialog#addProductModal::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* 2. Main Modal Container (Matches your login-container style) */
+dialog#addProductModal {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 550px;
+  margin: auto; /* Perfectly centers the dialog */
+}
+
+/* Modal Title */
+dialog#addProductModal h2 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #121212;
+}
+
+dialog#addProductModal .input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+  text-align: left;
+}
+
+dialog#addProductModal .input-group label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+dialog#addProductModal .input-group input,
+dialog#addProductModal .input-group select,
+dialog#addProductModal .input-group textarea {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: Arial, Helvetica, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  transition: border-color 0.3s;
+}
+
+dialog#addProductModal .input-group input:focus,
+dialog#addProductModal .input-group select:focus,
+dialog#addProductModal .input-group textarea:focus {
+  outline: none;
+  border-color: #ff1e00;
+}
+
+dialog#addProductModal .input-group input[type="file"] {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+dialog#addProductModal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 2rem;
+}
+
+dialog#addProductModal #cancelBtn {
+  padding: 10px 25px;
+  background: #f5f7f9;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+dialog#addProductModal #cancelBtn:hover {
+  background: #e4e7ea;
+}
+
+dialog#addProductModal #submitBtn {
+  padding: 10px 25px;
+  background: #ff1e00;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+dialog#addProductModal #submitBtn:hover {
+  background: #d11800; 
 }
 
 /* Filter Section */
