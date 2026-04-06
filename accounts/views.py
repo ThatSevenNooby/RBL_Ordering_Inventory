@@ -63,7 +63,7 @@ def register_view(request):
                 birthdate=birthdate         
             )
 
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('home')
 
         except Exception as e:

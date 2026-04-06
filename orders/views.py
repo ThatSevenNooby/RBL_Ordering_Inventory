@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from catalog.models import Product
 from .models import Cart, CartItem, Order, OrderItem
+from django.db import transaction
 
 @login_required
 def add_to_cart(request):
@@ -85,41 +86,55 @@ def checkout_view(request):
         reference_number = request.POST.get('reference_number', '')
         proof_image = request.FILES.get('proof_image')
 
-        order = Order.objects.create(
-            user=request.user,
-            total_price=total,
-            payment_method=payment_method,
-            payment_reference=reference_number,
-            payment_proof=proof_image
-        )
+        with transaction.atomic():
+            
+            out_of_stock = False
+            for item in cart_items:
+                item.product.refresh_from_db()
+                
+                if item.quantity > item.product.quantity:
+                    out_of_stock = True
+                    if item.product.quantity == 0:
+                        messages.error(request, f"Sorry, '{item.product.product_name}' just sold out!")
+                    else:
+                        messages.error(request, f"Sorry, only {item.product.quantity} left of '{item.product.product_name}'. Please update your cart.")
+            
+            if out_of_stock:
+                return redirect('cart')
 
-        for item in cart_items:
-            OrderItem.objects.create(
-                order=order,
-                product=item.product,
-                price=item.product.price,
-                quantity=item.quantity
+            order = Order.objects.create(
+                user=request.user,
+                total_price=total,
+                payment_method=payment_method,
+                payment_reference=reference_number,
+                payment_proof=proof_image
             )
-            item.product.quantity -= item.quantity
-            item.product.save()
 
-        cart.items.all().delete()
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    price=item.product.price,
+                    quantity=item.quantity
+                )
+                item.product.quantity -= item.quantity
+                item.product.save()
+
+            cart.items.all().delete()
 
         messages.success(request, f"Order #{order.id} has been placed successfully!")
-        
         return redirect('order_receipt', order_id=order.id)
 
     context = {
         'cart_items': cart_items,
         'total': total,
-        'user': request.user, # Pass the user object so we can show their contact info
+        'user': request.user, 
     }
     
     return render(request, 'customer_checkout.html', context)
 
 @login_required
 def order_receipt(request, order_id):
-    # get_object_or_404 ensures the logged-in user actually owns this order!
     order = get_object_or_404(Order, id=order_id, user=request.user)
     
     context = {
