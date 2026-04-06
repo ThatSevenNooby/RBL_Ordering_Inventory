@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Q
+from django.db.models import Sum, Count, Q
 from catalog.models import Product, Category, Brand
 from django.contrib import messages
 from orders.models import Order, OrderItem
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # The @staff_member_required decorator ensures ONLY users with is_staff=True can enter.
 @staff_member_required
@@ -226,9 +229,9 @@ def dashboard_orders(request):
     context = {
         'orders': orders,
         'current_status': status_filter,
-        'status_counts': status_counts, # Pass the counts to the HTML
-        'search': search_query,         # Keep track of search so tabs don't erase it
-        'sort_by': sort_by,             # Keep track of sort so tabs don't erase it
+        'status_counts': status_counts,
+        'search': search_query,
+        'sort_by': sort_by, 
     }
     return render(request, 'store_dashboard/dashboard_orders.html', context)
 
@@ -292,3 +295,124 @@ def dashboard_payments(request):
         'sort_by': sort_by,
     }
     return render(request, 'store_dashboard/dashboard_payments.html', context)
+
+@staff_member_required
+def dashboard_home(request):
+    orders_summary = Order.objects.aggregate(
+        total_orders=Count('id'),
+        pending_orders=Count('id', filter=Q(status='Pending')),
+        confirmed_orders=Count('id', filter=Q(status='Processing')),
+        ready_orders=Count('id', filter=Q(status='Ready')),
+        completed_orders=Count('id', filter=Q(status='Completed')),
+        cancelled_orders=Count('id', filter=Q(status='Cancelled')),
+    )
+
+    total_revenue = Order.objects.filter(status='Completed', payment_status='Paid').aggregate(
+        total_sales=Sum('total_price')
+    )['total_sales'] or 0
+
+    inventory_summary = Product.objects.aggregate(
+        total_products=Count('id'),
+        total_stock=Sum('quantity')
+    )
+
+    total_users = User.objects.filter(is_staff=False).count()
+
+    recent_orders = Order.objects.select_related('user').order_by('-created_at')[:5]
+    low_stock_products = Product.objects.filter(quantity__lt=10).order_by('quantity')[:5]
+
+    context = {
+        'orders': orders_summary,
+        'total_revenue': total_revenue,
+        'total_products': inventory_summary['total_products'] or 0,
+        'total_stock': inventory_summary['total_stock'] or 0,
+        'total_users': total_users,
+        'recent_orders': recent_orders,
+        'low_stock_products': low_stock_products,
+    }
+    return render(request, 'store_dashboard/dashboard_home.html', context)
+
+@staff_member_required
+def dashboard_users(request):
+    # --- 1. HANDLE FORM SUBMISSION (ADD / EDIT) ---
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        contact_number = request.POST.get('contact_number')
+        address = request.POST.get('address')
+        password = request.POST.get('password')
+
+        if user_id:
+            # EDIT MODE: The hidden user_id field had a value
+            target_user = get_object_or_404(User, id=user_id)
+            target_user.first_name = first_name
+            target_user.last_name = last_name
+            target_user.username = username
+            target_user.email = email
+            target_user.contact_number = contact_number
+            target_user.address = address
+            
+            # If the admin typed a new password, hash it and save it. 
+            # If they left it blank, it skips this and keeps the old one!
+            if password:
+                target_user.set_password(password)
+                
+            target_user.save()
+            messages.success(request, f"User @{target_user.username} has been successfully updated!")
+            
+        else:
+            # ADD MODE: The hidden user_id field was empty
+            try:
+                new_user = User.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                    username=username,
+                    email=email,
+                    contact_number=contact_number,
+                    address=address
+                )
+                # Hashes the password securely
+                new_user.set_password(password)
+                new_user.save()
+                messages.success(request, f"New user @{new_user.username} created successfully!")
+            except Exception as e:
+                # Catches errors like duplicate usernames
+                messages.error(request, f"Error creating user: A user with that username or email might already exist.")
+        
+        return redirect('dashboard_users')
+
+    # --- 2. HANDLE DISPLAY & SEARCH ---
+    # Get all users (excluding superusers if you want, but this gets everyone)
+    users = User.objects.all().order_by('-date_joined')
+    
+    search_query = request.GET.get('search', '')
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+
+    context = {
+        'users': users,
+    }
+    return render(request, 'store_dashboard/dashboard_users.html', context)
+
+
+@staff_member_required
+def delete_user(request, user_id):
+    target_user = get_object_or_404(User, id=user_id)
+    
+    # Safety Check: Prevent the logged-in admin from accidentally deleting themselves!
+    if target_user == request.user:
+        messages.error(request, "Safety alert: You cannot delete your own admin account.")
+    else:
+        username = target_user.username
+        target_user.delete()
+        messages.success(request, f"User @{username} has been permanently deleted.")
+        
+    return redirect('dashboard_users')

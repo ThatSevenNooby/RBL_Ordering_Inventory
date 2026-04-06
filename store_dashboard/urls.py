@@ -21,4 +21,7 @@ urlpatterns = [
     path('orders/<int:order_id>/', views.dashboard_order_summary, name='dashboard_order_summary'),
 
     path('payments/', views.dashboard_payments, name='dashboard_payments'),
+
+    path('users/', views.dashboard_users, name='dashboard_users'),
+    path('users/delete/<int:user_id>/', views.delete_user, name='delete_user'),
 ]

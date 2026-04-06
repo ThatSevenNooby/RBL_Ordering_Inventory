@@ -1208,7 +1208,8 @@ dialog#addProductModal {
 /* 1. Modal Backdrop (Dims the background behind the popup) */
 dialog#addProductModal::backdrop,
 dialog#catModal::backdrop,
-dialog#brandModal::backdrop {
+dialog#brandModal::backdrop,
+dialog#userModal {
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
 }
@@ -1216,7 +1217,8 @@ dialog#brandModal::backdrop {
 /* 2. Main Modal Container */
 dialog#addProductModal,
 dialog#catModal,
-dialog#brandModal {
+dialog#brandModal,
+dialog#userModal {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 8px;
