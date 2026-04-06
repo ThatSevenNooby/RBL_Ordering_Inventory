@@ -1,0 +1,144 @@
+{% extends 'store_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Order Details #{{ order.id|stringformat:"06d" }}{% endblock %}
+
+{% block content %}
+<main>
+    <div class="order-summary-container">
+        {% if messages %}
+            <div style="margin-bottom: 1rem; color: green; font-weight: bold;">
+                {% for message in messages %}{{ message }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="summary-header">
+            <h2>Order Details - #{{ order.id|stringformat:"06d" }}</h2>
+            <a href="{% url 'dashboard_orders' %}" class="back-btn">← Back to Orders</a>
+        </div>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <h3>Customer Information</h3>
+                <div class="info-row">
+                    <span class="label">Name:</span>
+                    <span class="value">{{ order.user.first_name }} {{ order.user.last_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Username:</span>
+                    <span class="value">@{{ order.user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ order.user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Contact:</span>
+                    <span class="value">{{ order.user.contact_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Address:</span>
+                    <span class="value">{{ order.user.address }}</span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Order Information</h3>
+                <div class="info-row">
+                    <span class="label">Order Date:</span>
+                    <span class="value">{{ order.created_at|date:"F d, Y h:i A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Payment Method:</span>
+                    <span class="value">{{ order.get_payment_method_display }}</span>
+                </div>
+                
+                {% if order.payment_reference %}
+                <div class="info-row">
+                    <span class="label">Reference No:</span>
+                    <span class="value">{{ order.payment_reference }}</span>
+                </div>
+                {% endif %}
+                
+                {% if order.payment_proof %}
+                <div class="info-row" style="display: block; margin-top: 10px;">
+                    <span class="label" style="display: block; margin-bottom: 5px;">Payment Screenshot:</span>
+                    <a href="{{ order.payment_proof.url }}" target="_blank">
+                        <img src="{{ order.payment_proof.url }}" alt="Proof of Payment" style="max-width: 100%; border-radius: 4px; border: 1px solid #ccc;">
+                    </a>
+                </div>
+                {% endif %}
+
+                <div class="info-row" style="margin-top: 15px;">
+                    <span class="label">Total Amount:</span>
+                    <span class="value amount">₱{{ order.total_price|floatformat:2 }}</span>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Update Order Status</h3>
+                <form method="POST" action="{% url 'dashboard_order_summary' order.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="order_status">Order Status:</label>
+                        <select name="order_status" id="order_status" required>
+                            <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                            <option value="Ready" {% if order.status == 'Ready' %}selected{% endif %}>Ready for Pickup</option>
+                            <option value="Completed" {% if order.status == 'Completed' %}selected{% endif %}>Completed</option>
+                            <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="payment_status">Payment Status:</label>
+                        <select name="payment_status" id="payment_status" required>
+                            <option value="Pending" {% if order.payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                            <option value="Paid" {% if order.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                            <option value="Refunded" {% if order.payment_status == 'Refunded' %}selected{% endif %}>Refunded</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" name="update_status" class="update-btn">Update Status</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="summary-card items-card">
+            <h3>Order Items ({{ order_items|length }})</h3>
+            <div class="items-list">
+                {% for item in order_items %}
+                <div class="item-row">
+                    <div class="item-image">
+                        {% if item.product.image_path %}
+                            <img src="{{ item.product.image_path.url }}" alt="Product Image">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="No Image">
+                        {% endif %}
+                    </div>
+                    <div class="item-details">
+                        <h4>{{ item.product.product_name }}</h4>
+                        <p>Product ID: #{{ item.product.id }}</p>
+                    </div>
+                    <div class="item-quantity">
+                        <p>Qty: {{ item.quantity }}</p>
+                    </div>
+                    <div class="item-price">
+                        <p>₱{{ item.price|floatformat:2 }}</p>
+                    </div>
+                    <div class="item-total">
+                        <p><strong>₱{% widthratio item.price 1 item.quantity %}.00</strong></p>
+                    </div>
+                </div>
+                {% empty %}
+                <p>No items found for this order.</p>
+                {% endfor %}
+            </div>
+            <div class="order-total" style="text-align: right; margin-top: 15px; font-size: 1.2rem;">
+                <span>Total Amount:</span>
+                <span class="total-value" style="font-weight: bold; color: #ff1e00;">₱{{ order.total_price|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

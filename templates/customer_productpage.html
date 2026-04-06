@@ -23,12 +23,17 @@
             {% else %}
                 <p style="color: red;"><strong>Out of Stock</strong></p>
             {% endif %}
-            <form method="POST" action="">
-                <input type="hidden" name="product_id" value="">
-                <div>
-                    <label for="quantity">Quantity:</label>
-                        <input type="number" required>
+            <form method="POST" action="{% url 'add_to_cart' %}">
+                {% csrf_token %}
+                
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                
+                <div class="quantity">
+                    <button type="button" class="minus">−</button>
+                    <input type="number" value="1" min="1" max="{{ product.quantity }}" name="quantity" id="quantity" required>     
+                    <button type="button" class="plus">+</button>
                 </div>
+                
                 <button type="submit" name="add_to_cart">Add to Cart</button>
             </form>
             <hr>
@@ -37,4 +42,29 @@
         </div>
     </div>
 </main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const minusBtn = document.querySelector('.minus');
+    const plusBtn = document.querySelector('.plus');
+    const qtyInput = document.getElementById('quantity');
+
+    if (minusBtn && plusBtn && qtyInput) {
+        minusBtn.addEventListener('click', () => {
+            let currentValue = parseInt(qtyInput.value);
+            let min = parseInt(qtyInput.min);
+            if (currentValue > min) {
+                qtyInput.value = currentValue - 1;
+            }
+        });
+
+        plusBtn.addEventListener('click', () => {
+            let currentValue = parseInt(qtyInput.value);
+            let max = parseInt(qtyInput.max);
+            if (currentValue < max) {
+                qtyInput.value = currentValue + 1;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base_customer.html' %}
+{% load static %}
+
+{% block title %}My Cart - RBL Shop{% endblock %}
+
+{% block content %}
+<main>
+    <h2>Your Cart</h2>
+    
+    {% if messages %}
+        <div class="messages" style="text-align: center; color: red; margin-bottom: 10px;">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="cart-container">
+        {% if cart_items %}
+            
+            <div class="cart-items">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                        <tr>
+                            <td>
+                                <div class="cart-item">
+                                    <div class="cart-item-image">
+                                        {% if item.product.image_path %}
+                                            <img src="{{ item.product.image_path.url }}" alt="{{ item.product.product_name }}">
+                                        {% else %}
+                                            <img src="{% static 'images/placeholder.jpg' %}" alt="No Image">
+                                        {% endif %}
+                                    </div>
+                                    <div class="cart-item-details">
+                                        <p>{{ item.product.product_name }}</p>
+                                        <p>₱{{ item.product.price|floatformat:2 }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="cart-item-quantity">
+                                    <div class="quantity">
+                                        <form method="POST" action="{% url 'update_cart' item.id %}" style="margin:0; display:inline-block;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="decrement">
+                                            <button type="submit" class="minus">−</button>
+                                        </form>
+                                        
+                                        <input type="number" value="{{ item.quantity }}" min="1" readonly style="width: 40px; text-align: center; border:none; background:transparent;">
+                                        
+                                        <form method="POST" action="{% url 'update_cart' item.id %}" style="margin:0; display:inline-block;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="increment">
+                                            <button type="submit" class="plus">+</button>
+                                        </form>
+                                    </div>
+                                    
+                                    <form method="POST" action="{% url 'update_cart' item.id %}" style="margin-top: 10px;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove">
+                                        <button type="submit" class="remove-btn">Remove</button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td>₱{{ item.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="cart-items-mobile">
+                {% for item in cart_items %}
+                <div class="cart-item-mobile">
+                    <div class="image-placeholder">
+                        {% if item.product.image_path %}
+                            <img src="{{ item.product.image_path.url }}" alt="{{ item.product.product_name }}">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="No Image">
+                        {% endif %}
+                    </div>
+                    <div class="cart-item-details">
+                        <p>{{ item.product.product_name }}</p>
+                        <p>₱{{ item.product.price|floatformat:2 }}</p>
+                        <div class="quantity">
+                            <form method="POST" action="{% url 'update_cart' item.id %}" style="margin:0; display:inline-block;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="decrement">
+                                <button type="submit" class="minus">−</button>
+                            </form>
+                            
+                            <input type="number" value="{{ item.quantity }}" min="1" readonly style="width: 40px; text-align: center; border:none; background:transparent;">
+                            
+                            <form method="POST" action="{% url 'update_cart' item.id %}" style="margin:0; display:inline-block;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="increment">
+                                <button type="submit" class="plus">+</button>
+                            </form>
+                        </div>
+                        <p><strong>Total:</strong> ₱{{ item.subtotal|floatformat:2 }}</p>
+                        <div class="cart-item-actions">
+                            <form method="POST" action="{% url 'update_cart' item.id %}" style="margin:0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <button type="submit" class="remove-btn">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="checkout-section">
+                <form id="cart-form" method="GET" action="{% url 'checkout' %}">
+                    <div class="cart-total">
+                        <h3>Total:</h3>
+                        <h3>₱{{ total|floatformat:2 }}</h3>
+                    </div>
+                    <button type="submit" class="checkout-button" {% if total == 0 %}disabled{% endif %}>
+                        Checkout
+                    </button>
+                </form>
+            </div>
+
+        {% else %}
+            <div style="text-align: center; padding: 4rem; width: 100%;">
+                <h2>Your cart is currently empty!</h2>
+                <a href="{% url 'catalog' %}" style="display: inline-block; margin-top: 1.5rem; padding: 10px 25px; background: #ff1e00; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Continue Shopping</a>
+            </div>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

@@ -1205,29 +1205,53 @@ dialog#addProductModal {
 }
 
 /* Modal Title */
-dialog#addProductModal h2 {
+/* 1. Modal Backdrop (Dims the background behind the popup) */
+dialog#addProductModal::backdrop,
+dialog#catModal::backdrop,
+dialog#brandModal::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* 2. Main Modal Container */
+dialog#addProductModal,
+dialog#catModal,
+dialog#brandModal {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 550px;
+  margin: auto; /* Perfectly centers the dialog */
+}
+
+/* Modal Title */
+dialog h2 {
   text-align: center;
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: #121212;
 }
 
-dialog#addProductModal .input-group {
+/* 3. Input Groups */
+dialog .input-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 1.2rem;
   text-align: left;
 }
 
-dialog#addProductModal .input-group label {
+dialog .input-group label {
   margin-bottom: 0.5rem;
   font-weight: bold;
   color: #333;
 }
 
-dialog#addProductModal .input-group input,
-dialog#addProductModal .input-group select,
-dialog#addProductModal .input-group textarea {
+dialog .input-group input,
+dialog .input-group select,
+dialog .input-group textarea {
   padding: 10px 15px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -1239,26 +1263,28 @@ dialog#addProductModal .input-group textarea {
   transition: border-color 0.3s;
 }
 
-dialog#addProductModal .input-group input:focus,
-dialog#addProductModal .input-group select:focus,
-dialog#addProductModal .input-group textarea:focus {
+dialog .input-group input:focus,
+dialog .input-group select:focus,
+dialog .input-group textarea:focus {
   outline: none;
   border-color: #ff1e00;
 }
 
-dialog#addProductModal .input-group input[type="file"] {
+dialog .input-group input[type="file"] {
   padding: 8px 10px;
   cursor: pointer;
 }
 
-dialog#addProductModal .modal-actions {
+/* 4. Action Buttons Layout */
+dialog .modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
   margin-top: 2rem;
 }
 
-dialog#addProductModal #cancelBtn {
+/* Cancel Button (Automatically targets the button with type="button") */
+dialog .modal-actions button[type="button"] {
   padding: 10px 25px;
   background: #f5f7f9;
   color: #333;
@@ -1269,11 +1295,12 @@ dialog#addProductModal #cancelBtn {
   transition: all 0.3s ease;
 }
 
-dialog#addProductModal #cancelBtn:hover {
+dialog .modal-actions button[type="button"]:hover {
   background: #e4e7ea;
 }
 
-dialog#addProductModal #submitBtn {
+/* Submit/Save Button (Automatically targets the button with type="submit") */
+dialog .modal-actions button[type="submit"] {
   padding: 10px 25px;
   background: #ff1e00;
   color: white;
@@ -1284,7 +1311,7 @@ dialog#addProductModal #submitBtn {
   transition: all 0.3s ease;
 }
 
-dialog#addProductModal #submitBtn:hover {
+dialog .modal-actions button[type="submit"]:hover {
   background: #d11800; 
 }
 

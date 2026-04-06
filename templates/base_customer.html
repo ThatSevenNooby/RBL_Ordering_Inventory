@@ -80,7 +80,7 @@
                                 {% endif %}
                             </div>
                     </div>
-                    <a href="userCart.html">
+                    <a href="{% url 'cart' %}"> 
                         <button class="cart-button">
                             <img src="{% static 'images/cart-shopping-svgrepo-com.png' %}" alt="cart">
                         </button>
@@ -93,13 +93,23 @@
                 <a href="{% url 'home' %}">Home</a>
                 <div class="dropdown">
                     <button class="dropbtn">Categories 
-                    <span class="caret"></span></i>
+                        <span class="caret"></span>
                     </button>
+                    <div class="dropdown-content">
+                        {% for cat in nav_categories %}
+                            <a href="{% url 'catalog' %}?category={{ cat.id }}">{{ cat.category_name }}</a>
+                        {% endfor %}
+                    </div>
                 </div>
                 <div class="dropdown">
                     <button class="dropbtn">Brands 
-                    <span class="caret"></span></i>
+                        <span class="caret"></span>
                     </button>
+                    <div class="dropdown-content">
+                        {% for brand in nav_brands %}
+                            <a href="{% url 'catalog' %}?brand={{ brand.id }}">{{ brand.brand_name }}</a>
+                        {% endfor %}
+                    </div>
                 </div>
                 <a href="{% url 'catalog' %}">All Products</a>
             </div>

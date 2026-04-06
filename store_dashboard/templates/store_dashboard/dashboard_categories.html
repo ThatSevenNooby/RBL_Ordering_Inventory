@@ -1,0 +1,104 @@
+{% extends 'store_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Categories{% endblock %}
+
+{% block content %}
+<main>
+    <div class="add-button-section">
+        <h2>All Categories</h2>
+        <button class="add-button" id="openCatBtn">+ Add Category</button>
+    </div>
+
+    <dialog id="catModal">
+        <form method="POST" action="{% url 'dashboard_categories' %}" id="catForm">
+            {% csrf_token %}
+            <h2 id="modalTitle">Add New Category</h2>
+            
+            <div class="input-group">
+                <label for="category_name">Category Name:</label>
+                <input type="text" id="category_name" name="category_name" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="cancelCatBtn">Cancel</button>
+                <button type="submit" id="submitCatBtn">Save Category</button>
+            </div>
+        </form>
+    </dialog>
+    
+    <div class="admin-products-container">
+        <form method="get" action="" class="filter-controls" style="margin-bottom:1rem;">
+            <div class="search-box">
+                <input type="text" name="search" placeholder="Search categories..." value="{{ request.GET.search }}">
+            </div>
+            <button type="submit" class="filter-btn">Search</button>
+            <a href="{% url 'dashboard_categories' %}" class="clear-btn">Clear</a>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Category Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.category_name }}</td>
+                        <td>
+                            <button type="button" class="editCatBtn" style="background:none; border:none; color:blue; text-decoration:underline; cursor:pointer; padding:0; font-size:1rem;"
+                                data-id="{{ category.id }}"
+                                data-name="{{ category.category_name }}">
+                                Edit
+                            </button> | 
+                            
+                            <a href="{% url 'delete_category' category.id %}" onclick="return confirm('Delete {{ category.category_name }}? This will also delete ALL products inside this category!');" style="color: #ff1e00;">Delete</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan='3'>No categories found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('catModal');
+        const form = document.getElementById('catForm');
+        const title = document.getElementById('modalTitle');
+        const submitBtn = document.getElementById('submitCatBtn');
+        const nameInput = document.getElementById('category_name');
+        
+        document.getElementById('openCatBtn').addEventListener('click', () => {
+            form.reset();
+            form.action = "{% url 'dashboard_categories' %}";
+            title.textContent = "Add New Category";
+            submitBtn.textContent = "Save Category";
+            modal.showModal();
+        });
+
+        document.querySelectorAll('.editCatBtn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                nameInput.value = this.getAttribute('data-name');
+                
+                form.action = `/dashboard/categories/edit/${id}/`;
+                title.textContent = "Edit Category";
+                submitBtn.textContent = "Update Category";
+                modal.showModal();
+            });
+        });
+
+        document.getElementById('cancelCatBtn').addEventListener('click', () => {
+            modal.close();
+            form.reset();
+        });
+    });
+</script>
+{% endblock %}

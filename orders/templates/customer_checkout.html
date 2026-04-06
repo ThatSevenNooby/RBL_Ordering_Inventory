@@ -1,0 +1,207 @@
+{% extends 'base_customer.html' %}
+{% load static %}
+
+{% block title %}Checkout - RBL Shop{% endblock %}
+
+{% block content %}
+<script src="https://www.paypal.com/sdk/js?client-id=AZV9Vh4PKKTH10qgOs6_D3afEKedbrKpcXCeMb6cVoCWyn5M8Ip1eiX7hwPx1v1ZnBiCreJcoC-f0SHf&currency=PHP"></script>
+
+<main>
+    <div class="checkout-container">
+        <div class="payment-details">
+            <h2>Payment Details</h2>
+            <form action="{% url 'checkout' %}" method="POST" id="checkout-form" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div class="radio-group">
+                        <input type="radio" id="pay-on-pickup" name="payment_method" value="Pickup" checked>
+                        <label for="pay-on-pickup">Pay on Pickup</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="online-payment" name="payment_method" value="GCash">
+                        <label for="online-payment">GCash</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="paypal-payment" name="payment_method" value="PayPal">
+                        <label for="paypal-payment">PayPal</label>
+                    </div>
+                </div>
+
+                <div id="online-payment-section" class="gcash-payment-section" style="display: none;">
+                    
+                    <div id="gcash-info" style="display: none;">
+                        <h3>GCash Payment Instructions</h3>
+                        <p class="gcash-instruction"><strong>Send your payment to:</strong></p>
+                        <img src="{% static 'images/gcashqr.jpg' %}" alt="GCash QR Code" class="gcash-qr-image" style="max-width: 250px;">
+                        
+                        <div class="gcash-form-group" style="margin-top: 15px;">
+                            <label for="reference_number">GCash Reference No.:</label>
+                            <input type="text" name="reference_number" id="reference_number" placeholder="Enter reference number">
+                        </div>
+                        
+                        <div class="gcash-form-group">
+                            <label for="proof_image">Upload Screenshot:</label>
+                            <input type="file" name="proof_image" id="proof_image" accept="image/*">
+                            <small class="file-help-text">Upload a screenshot of your payment confirmation</small>
+                        </div>
+                    </div>
+
+                    <div id="paypal-info" style="display: none;">
+                        <h3>Pay Securely with PayPal</h3>
+                        <p style="margin-bottom: 15px;">Click the button below to log in and process your payment.</p>
+                        <div id="paypal-button-container"></div>
+                    </div>
+                </div>
+
+                <div class="customer-pickup-info">
+                    <h3>Customer Details</h3>
+                    <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                    <p><strong>Contact:</strong> {{ user.contact_number }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+                
+                <div class="pickup-info">
+                    <h3>Pickup Information</h3>
+                    <p><strong>Pickup Location:</strong> Carkiez Store, Purok 3, Poblacion, Kapatagan Highway, Kapatagan, Lanao Del Norte</p>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1975.9717399302717!2d123.77012398018928!3d7.900974031470483!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x32543494c8e5a309%3A0xea1c4ebf451f6fd!2sCARKIEZ%20AUTO%20SUPPLY!5e0!3m2!1sen!2sph!4v1761585936685!5m2!1sen!2sph" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <p><small>*Please pick up your order within 3 days after confirmation.</small></p>
+                </div>
+                
+                <div class="confirm-order" id="normal-submit-btn">
+                    <button type="submit">Confirm Order</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="order-summary">
+            <h2>Order Summary</h2>
+            <div class="summary-order-items">
+                {% if cart_items %}
+                    {% for item in cart_items %}
+                    <div class="summary-order-item">
+                        <div class="summary-item-details">
+                            <div class="summary-image">
+                                {% if item.product.image_path %}
+                                    <img src="{{ item.product.image_path.url }}" alt="Product Image">
+                                {% else %}
+                                    <img src="{% static 'images/placeholder.jpg' %}" alt="No Image">
+                                {% endif %}
+                            </div>
+                            <p class="summary-item-name">
+                                {{ item.quantity }}x {{ item.product.product_name }}
+                            </p>
+                            <p class="summary-total-price">
+                                ₱{{ item.subtotal|floatformat:2 }}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>Your cart is empty.</p>
+                {% endif %}
+            </div>
+            
+            <div class="total-amount">
+                <h3>Total</h3>
+                <h3>₱{{ total|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const payOnPickup = document.getElementById('pay-on-pickup');
+    const onlinePayment = document.getElementById('online-payment'); // GCash
+    const paypalPayment = document.getElementById('paypal-payment'); // PayPal
+    
+    const onlineSection = document.getElementById('online-payment-section');
+    const gcashInfo = document.getElementById('gcash-info');
+    const paypalInfo = document.getElementById('paypal-info');
+    
+    const referenceInput = document.getElementById('reference_number');
+    const proofInput = document.getElementById('proof_image');
+    const normalSubmitBtn = document.getElementById('normal-submit-btn');
+
+    // 2. Toggle Logic
+    function togglePaymentSections() {
+        if (onlinePayment.checked) {
+            // Setup for GCash
+            onlineSection.style.display = 'block';
+            gcashInfo.style.display = 'block';
+            paypalInfo.style.display = 'none';
+            
+            referenceInput.required = true;
+            proofInput.required = true;
+            normalSubmitBtn.style.display = 'block'; // Show normal checkout button
+            
+        } else if (paypalPayment.checked) {
+            // Setup for PayPal
+            onlineSection.style.display = 'block';
+            gcashInfo.style.display = 'none';
+            paypalInfo.style.display = 'block';
+            
+            referenceInput.required = false; // PayPal handles this automatically
+            proofInput.required = false; // No screenshot needed
+            normalSubmitBtn.style.display = 'none'; // Hide normal checkout button
+            
+        } else {
+            // Setup for Pay on Pickup
+            onlineSection.style.display = 'none';
+            referenceInput.required = false;
+            proofInput.required = false;
+            normalSubmitBtn.style.display = 'block'; // Show normal checkout button
+        }
+    }
+
+    payOnPickup.addEventListener('change', togglePaymentSections);
+    onlinePayment.addEventListener('change', togglePaymentSections);
+    paypalPayment.addEventListener('change', togglePaymentSections);
+
+    // Form validation for GCash before manual submit
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        if (onlinePayment.checked) {
+            if (!referenceInput.value.trim()) {
+                e.preventDefault();
+                alert('Please enter your GCash Reference number');
+                referenceInput.focus();
+                return false;
+            }
+            if (!proofInput.files.length) {
+                e.preventDefault();
+                alert('Please upload a screenshot of your payment');
+                proofInput.focus();
+                return false;
+            }
+        }
+    });
+
+    // 3. PayPal Smart Buttons Integration
+    paypal.Buttons({
+        // Sets up the transaction
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        // "2u" ensures Django prints 1000.00 instead of 1,000.00 (which breaks PayPal)
+                        value: '{{ total|floatformat:"2u" }}' 
+                    }
+                }]
+            });
+        },
+        // Finalize the transaction after they login and approve
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                
+                // Secretly put the PayPal Transaction ID into our form's GCash reference field
+                referenceInput.value = details.id;
+                
+                // Submit our Django form! 
+                // This triggers your views.py, saves the order, and wipes the cart.
+                document.getElementById('checkout-form').submit();
+            });
+        }
+    }).render('#paypal-button-container');
+});
+</script>
+{% endblock %}

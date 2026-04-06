@@ -1,0 +1,104 @@
+{% extends 'store_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage brands{% endblock %}
+
+{% block content %}
+<main>
+    <div class="add-button-section">
+        <h2>All brands</h2>
+        <button class="add-button" id="openCatBtn">+ Add brand</button>
+    </div>
+
+    <dialog id="catModal">
+        <form method="POST" action="{% url 'dashboard_brands' %}" id="catForm">
+            {% csrf_token %}
+            <h2 id="modalTitle">Add New brand</h2>
+            
+            <div class="input-group">
+                <label for="brand_name">brand Name:</label>
+                <input type="text" id="brand_name" name="brand_name" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="cancelCatBtn">Cancel</button>
+                <button type="submit" id="submitCatBtn">Save brand</button>
+            </div>
+        </form>
+    </dialog>
+    
+    <div class="admin-products-container">
+        <form method="get" action="" class="filter-controls" style="margin-bottom:1rem;">
+            <div class="search-box">
+                <input type="text" name="search" placeholder="Search brands..." value="{{ request.GET.search }}">
+            </div>
+            <button type="submit" class="filter-btn">Search</button>
+            <a href="{% url 'dashboard_brands' %}" class="clear-btn">Clear</a>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>brand Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for brand in brands %}
+                    <tr>
+                        <td>{{ brand.id }}</td>
+                        <td>{{ brand.brand_name }}</td>
+                        <td>
+                            <button type="button" class="editCatBtn" style="background:none; border:none; color:blue; text-decoration:underline; cursor:pointer; padding:0; font-size:1rem;"
+                                data-id="{{ brand.id }}"
+                                data-name="{{ brand.brand_name }}">
+                                Edit
+                            </button> | 
+                            
+                            <a href="{% url 'delete_brand' brand.id %}" onclick="return confirm('Delete {{ brand.brand_name }}? This will also delete ALL products inside this brand!');" style="color: #ff1e00;">Delete</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan='3'>No brands found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('catModal');
+        const form = document.getElementById('catForm');
+        const title = document.getElementById('modalTitle');
+        const submitBtn = document.getElementById('submitCatBtn');
+        const nameInput = document.getElementById('brand_name');
+        
+        document.getElementById('openCatBtn').addEventListener('click', () => {
+            form.reset();
+            form.action = "{% url 'dashboard_brands' %}";
+            title.textContent = "Add New brand";
+            submitBtn.textContent = "Save brand";
+            modal.showModal();
+        });
+
+        document.querySelectorAll('.editCatBtn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                nameInput.value = this.getAttribute('data-name');
+                
+                form.action = `/dashboard/brands/edit/${id}/`;
+                title.textContent = "Edit brand";
+                submitBtn.textContent = "Update brand";
+                modal.showModal();
+            });
+        });
+
+        document.getElementById('cancelCatBtn').addEventListener('click', () => {
+            modal.close();
+            form.reset();
+        });
+    });
+</script>
+{% endblock %}

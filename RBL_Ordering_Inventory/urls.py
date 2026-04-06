@@ -35,6 +35,8 @@ urlpatterns = [
     path('catalog/', catalog_view, name='catalog'),
     path('product/<int:product_id>/', product_view, name='product'),
     path('register/', register_view, name='register'),
+
+    path('orders/', include('orders.urls')),
 ]
 
 if settings.DEBUG:

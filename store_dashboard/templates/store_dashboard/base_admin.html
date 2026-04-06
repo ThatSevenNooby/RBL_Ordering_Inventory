@@ -31,8 +31,8 @@
             </button>
             <div class="dropdown-content">
                 <a href="{% url 'dashboard_products' %}">Manage Products</a>
-                <a href="adminCategories">Manage Categories</a>
-                <a href="adminBrands">Manage Brands</a>
+                <a href="{% url 'dashboard_categories' %}">Manage Categories</a>
+                <a href="{% url 'dashboard_brands' %}">Manage Brands</a>
             </div>
         </div>
         <div class="dropdown">
@@ -40,7 +40,7 @@
                 <span class="caret"></span>
             </button>
             <div class="dropdown-content">
-                <a href="adminOrders">View Orders</a>
+                <a href="{% url 'dashboard_orders' %}">View Orders</a>
             </div>
         </div>
         <div class="dropdown">

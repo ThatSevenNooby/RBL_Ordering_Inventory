@@ -3,6 +3,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from catalog.models import Product, Category, Brand
 from django.contrib import messages
+from orders.models import Order, OrderItem
 
 # The @staff_member_required decorator ensures ONLY users with is_staff=True can enter.
 @staff_member_required
@@ -111,3 +112,140 @@ def edit_product(request, product_id):
         messages.success(request, f"'{product.product_name}' was updated successfully!")
         
     return redirect('dashboard_products')
+
+@staff_member_required
+def dashboard_categories(request):
+    if request.method == 'POST':
+        name = request.POST.get('category_name')
+        if name:
+            Category.objects.create(category_name=name)
+            messages.success(request, f"Category '{name}' added successfully!")
+        return redirect('dashboard_categories')
+    categories = Category.objects.all()
+    search_query = request.GET.get('search', '')
+    if search_query:
+        categories = categories.filter(category_name__icontains=search_query)
+
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'store_dashboard/dashboard_categories.html', context)
+
+@staff_member_required
+def edit_category(request, category_id):
+    if request.method == 'POST':
+        category = get_object_or_404(Category, id=category_id)
+        new_name = request.POST.get('category_name')
+        if new_name:
+            category.category_name = new_name
+            category.save()
+            messages.success(request, "Category updated successfully!")
+    return redirect('dashboard_categories')
+
+@staff_member_required
+def delete_category(request, category_id):
+    category = get_object_or_404(Category, id=category_id)
+    name = category.category_name
+    category.delete()
+    messages.success(request, f"Category '{name}' was deleted.")
+    return redirect('dashboard_categories')
+
+@staff_member_required
+def dashboard_brands(request):
+    if request.method == 'POST':
+        name = request.POST.get('brand_name')
+        if name:
+            Brand.objects.create(brand_name=name)
+            messages.success(request, f"brand '{name}' added successfully!")
+        return redirect('dashboard_brands')
+    brands = Brand.objects.all()
+    search_query = request.GET.get('search', '')
+    if search_query:
+        brands = brands.filter(brand_name__icontains=search_query)
+
+    context = {
+        'brands': brands,
+    }
+    return render(request, 'store_dashboard/dashboard_brands.html', context)
+
+@staff_member_required
+def edit_brand(request, brand_id):
+    if request.method == 'POST':
+        brand = get_object_or_404(Brand, id=brand_id)
+        new_name = request.POST.get('brand_name')
+        if new_name:
+            brand.brand_name = new_name
+            brand.save()
+            messages.success(request, "brand updated successfully!")
+    return redirect('dashboard_brands')
+
+@staff_member_required
+def delete_brand(request, brand_id):
+    brand = get_object_or_404(Brand, id=brand_id)
+    name = brand.brand_name
+    brand.delete()
+    messages.success(request, f"brand '{name}' was deleted.")
+    return redirect('dashboard_brands')
+
+@staff_member_required
+def dashboard_orders(request):
+    orders = Order.objects.all().order_by('-created_at')
+
+    status_counts = {
+        'all': Order.objects.count(),
+        'pending': Order.objects.filter(status='Pending').count(),
+        'processing': Order.objects.filter(status='Processing').count(),
+        'ready': Order.objects.filter(status='Ready').count(),
+        'completed': Order.objects.filter(status='Completed').count(),
+        'cancelled': Order.objects.filter(status='Cancelled').count(),
+    }
+
+    search_query = request.GET.get('search', '')
+    if search_query:
+        orders = orders.filter(
+            Q(id__icontains=search_query) |
+            Q(user__username__icontains=search_query) |
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query)
+        )
+
+    status_filter = request.GET.get('status', 'all')
+    if status_filter != 'all':
+        orders = orders.filter(status=status_filter)
+
+    sort_by = request.GET.get('sort', 'date_desc')
+    if sort_by == 'date_asc':
+        orders = orders.order_by('created_at')
+    elif sort_by == 'date_desc':
+        orders = orders.order_by('-created_at')
+    elif sort_by == 'amount_asc':
+        orders = orders.order_by('total_price')
+    elif sort_by == 'amount_desc':
+        orders = orders.order_by('-total_price')
+
+    context = {
+        'orders': orders,
+        'current_status': status_filter,
+        'status_counts': status_counts, # Pass the counts to the HTML
+        'search': search_query,         # Keep track of search so tabs don't erase it
+        'sort_by': sort_by,             # Keep track of sort so tabs don't erase it
+    }
+    return render(request, 'store_dashboard/dashboard_orders.html', context)
+
+@staff_member_required
+def dashboard_order_summary(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('order_status')
+        if new_status:
+            order.status = new_status
+            order.save()
+            messages.success(request, f"Order #{order.id} has been updated to '{new_status}'.")
+            return redirect('dashboard_order_summary', order_id=order.id)
+
+    context = {
+        'order': order,
+        'order_items': order.items.all()
+    }
+    return render(request, 'store_dashboard/dashboard_order_summary.html', context)

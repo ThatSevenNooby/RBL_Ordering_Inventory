@@ -1,0 +1,108 @@
+{% extends 'store_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Orders{% endblock %}
+
+{% block content %}
+<main>
+    <div class="add-button-section">
+        <h2>Order Management</h2>
+    </div>
+
+    <div class="admin-products-container">
+        
+        <div class="order-tabs">
+            <a href="?status=all&sort={{ sort_by }}&search={{ search }}" 
+               class="order-tab {% if current_status == 'all' or not current_status %}active{% endif %}">
+                All Orders ({{ status_counts.all }})
+            </a>
+            
+            <a href="?status=Pending&sort={{ sort_by }}&search={{ search }}" 
+               class="order-tab {% if current_status == 'Pending' %}active{% endif %}">
+                Pending ({{ status_counts.pending }})
+            </a>
+            
+            <a href="?status=Processing&sort={{ sort_by }}&search={{ search }}" 
+               class="order-tab {% if current_status == 'Processing' %}active{% endif %}">
+                Processing ({{ status_counts.processing }})
+            </a>
+            
+            <a href="?status=Ready&sort={{ sort_by }}&search={{ search }}" 
+               class="order-tab {% if current_status == 'Ready' %}active{% endif %}">
+                Ready for Pickup ({{ status_counts.ready }})
+            </a>
+            
+            <a href="?status=Completed&sort={{ sort_by }}&search={{ search }}" 
+               class="order-tab {% if current_status == 'Completed' %}active{% endif %}">
+                Completed ({{ status_counts.completed }})
+            </a>
+            
+            <a href="?status=Cancelled&sort={{ sort_by }}&search={{ search }}" 
+               class="order-tab {% if current_status == 'Cancelled' %}active{% endif %}">
+                Cancelled ({{ status_counts.cancelled }})
+            </a>
+        </div>
+
+        <form method="get" action="" class="filter-controls" style="margin-bottom:1rem; display: flex; align-items: center; gap: 15px;">
+            <input type="hidden" name="status" value="{{ current_status }}">
+            
+            <div class="search-box" style="flex: 1;">
+                <input type="text" name="search" placeholder="Search ID, Name, Username..." value="{{ search }}">
+            </div>
+            
+            <div class="sort-box">
+                <label for="sort">Sort by:</label>
+                <select name="sort" id="sort">
+                    <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
+                    <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Oldest First</option>
+                    <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Highest Amount</option>
+                    <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Lowest Amount</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="filter-btn">Apply</button>
+            <a href="{% url 'dashboard_orders' %}" class="clear-btn">Clear</a>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Total Amount</th>
+                    <th>Payment Method</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td><strong>#{{ order.id }}</strong></td>
+                        <td>{{ order.created_at|date:"M d, Y h:i A" }}</td>
+                        <td>{{ order.user.first_name }} {{ order.user.last_name }}<br><small style="color:#666;">@{{ order.user.username }}</small></td>
+                        <td><strong>₱{{ order.total_price|floatformat:2 }}</strong></td>
+                        <td>{{ order.get_payment_method_display }}</td>
+                        <td>
+                            <span style="padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 0.9rem;
+                                {% if order.status == 'Pending' %}background: #fff3cd; color: #856404;
+                                {% elif order.status == 'Processing' %}background: #cce5ff; color: #004085;
+                                {% elif order.status == 'Ready' %}background: #d4edda; color: #155724;
+                                {% elif order.status == 'Completed' %}background: #e2e3e5; color: #383d41;
+                                {% elif order.status == 'Cancelled' %}background: #f8d7da; color: #721c24;{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'dashboard_order_summary' order.id %}" style="color: blue; text-decoration: underline;">View</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan='7' style="text-align:center; padding:2rem;">No orders found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %}
