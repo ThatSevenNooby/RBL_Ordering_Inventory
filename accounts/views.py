@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from .models import CustomUser
+from orders.models import Order
 
 def login_view(request):
     if request.method == 'POST':
@@ -70,3 +71,16 @@ def register_view(request):
             return redirect('register')
 
     return render(request, 'customer_register.html')
+
+def profile_view(request):
+    active_tab = request.GET.get('tab', 'account')
+    
+    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    context = {
+        'user': request.user,
+        'active_tab': active_tab,
+        'orders': user_orders,
+    }
+    
+    return render(request, 'customer_profile.html', context)

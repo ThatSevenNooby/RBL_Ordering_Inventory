@@ -1,0 +1,89 @@
+{% extends 'store_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Payments{% endblock %}
+
+{% block content %}
+<main>
+    <div class="admin-products-container">
+        <h2>Payments</h2>
+        <form method="get" action="{% url 'dashboard_payments' %}" class="filter-controls" style="margin-bottom:1rem;">
+            <div class="search-box">
+                <input type="text" name="search" placeholder="Search reference, user, method, status..." value="{{ search }}">
+            </div>
+            <div class="sort-box">
+                <label for="sort">Sort by:</label>
+                <select name="sort" id="sort">
+                    <option value="id_asc" {% if sort_by == 'id_asc' %}selected{% endif %}>ID (Asc)</option>
+                    <option value="id_desc" {% if sort_by == 'id_desc' %}selected{% endif %}>ID (Desc)</option>
+                    <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (Asc)</option>
+                    <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (Desc)</option>
+                    <option value="amount_asc" {% if sort_by == 'amount_asc' %}selected{% endif %}>Amount (Low-High)</option>
+                    <option value="amount_desc" {% if sort_by == 'amount_desc' %}selected{% endif %}>Amount (High-Low)</option>
+                    <option value="status_asc" {% if sort_by == 'status_asc' %}selected{% endif %}>Status (A-Z)</option>
+                    <option value="status_desc" {% if sort_by == 'status_desc' %}selected{% endif %}>Status (Z-A)</option>
+                </select>
+            </div>
+            <button type="submit" class="filter-btn">Apply</button>
+            <a href="{% url 'dashboard_payments' %}" class="clear-btn">Clear</a>
+        </form>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Payment ID</th>
+                    <th>Order</th>
+                    <th>User</th>
+                    <th>Method</th>
+                    <th>Amount Paid</th>
+                    <th>Date</th>
+                    <th>Reference #</th>
+                    <th>Status</th>
+                    <th>Proof</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if payments %}
+                    {% for row in payments %}
+                        <tr>
+                            <td>{{ row.id }}</td>
+                            <td><a href="{% url 'dashboard_order_summary' row.id %}" style="color: blue; text-decoration: underline;">View</a></td>
+                            <td>{{ row.user.username }}</td>
+                            <td>{{ row.get_payment_method_display }}</td>
+                            <td>₱{{ row.total_price|floatformat:2 }}</td>
+                            <td>{{ row.created_at|date:"Y-m-d H:i:s" }}</td>
+                            
+                            <td>
+                                {% if row.payment_reference %}
+                                    {{ row.payment_reference }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            
+                            <td>{{ row.payment_status }}</td>
+                            
+                            <td>
+                                {% if row.payment_method == 'PayPal' %}
+                                    <span style="color: #0070ba; font-weight: bold;">Verified API</span>
+                                    
+                                {% elif row.payment_method == 'Pickup' %}
+                                    <span style="color: #666; font-style: italic;">Pay on Pickup</span>
+                                    
+                                {% elif row.payment_proof %}
+                                    <a href="{{ row.payment_proof.url }}" target="_blank" style="color: blue; text-decoration: underline;">View Screenshot</a>
+                                    
+                                {% else %}
+                                    <span style="color: red; font-weight: bold;">No Proof</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan='9' style="text-align: center;">No payments found.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %}

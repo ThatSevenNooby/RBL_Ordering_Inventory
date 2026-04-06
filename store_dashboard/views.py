@@ -237,11 +237,13 @@ def dashboard_order_summary(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     
     if request.method == 'POST':
-        new_status = request.POST.get('order_status')
-        if new_status:
-            order.status = new_status
+        if 'update_status' in request.POST:
+            # Grab both values from the dropdowns
+            order.status = request.POST.get('order_status')
+            order.payment_status = request.POST.get('payment_status')
             order.save()
-            messages.success(request, f"Order #{order.id} has been updated to '{new_status}'.")
+            
+            messages.success(request, f"Order #{order.id} has been updated!")
             return redirect('dashboard_order_summary', order_id=order.id)
 
     context = {
@@ -249,3 +251,44 @@ def dashboard_order_summary(request, order_id):
         'order_items': order.items.all()
     }
     return render(request, 'store_dashboard/dashboard_order_summary.html', context)
+
+@staff_member_required
+def dashboard_payments(request):
+    payments = Order.objects.all()
+
+    # 1. Handle Search Filter
+    search_query = request.GET.get('search', '')
+    if search_query:
+        payments = payments.filter(
+            Q(payment_reference__icontains=search_query) |
+            Q(user__username__icontains=search_query) |
+            Q(payment_method__icontains=search_query) |
+            Q(payment_status__icontains=search_query) |
+            Q(id__icontains=search_query)
+        )
+
+    # 2. Handle Sort Dropdown
+    sort_by = request.GET.get('sort', 'id_asc') # Default sort is id_asc
+    if sort_by == 'id_asc':
+        payments = payments.order_by('id')
+    elif sort_by == 'id_desc':
+        payments = payments.order_by('-id')
+    elif sort_by == 'date_asc':
+        payments = payments.order_by('created_at')
+    elif sort_by == 'date_desc':
+        payments = payments.order_by('-created_at')
+    elif sort_by == 'amount_asc':
+        payments = payments.order_by('total_price')
+    elif sort_by == 'amount_desc':
+        payments = payments.order_by('-total_price')
+    elif sort_by == 'status_asc':
+        payments = payments.order_by('payment_status')
+    elif sort_by == 'status_desc':
+        payments = payments.order_by('-payment_status')
+
+    context = {
+        'payments': payments,
+        'search': search_query,
+        'sort_by': sort_by,
+    }
+    return render(request, 'store_dashboard/dashboard_payments.html', context)

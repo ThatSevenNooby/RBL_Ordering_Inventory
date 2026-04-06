@@ -107,7 +107,7 @@ def checkout_view(request):
 
         messages.success(request, f"Order #{order.id} has been placed successfully!")
         
-        return redirect('home')
+        return redirect('order_receipt', order_id=order.id)
 
     context = {
         'cart_items': cart_items,
@@ -116,3 +116,14 @@ def checkout_view(request):
     }
     
     return render(request, 'customer_checkout.html', context)
+
+@login_required
+def order_receipt(request, order_id):
+    # get_object_or_404 ensures the logged-in user actually owns this order!
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    context = {
+        'order': order,
+        'order_items': order.items.all(),
+    }
+    return render(request, 'customer_receipt.html', context)

@@ -39,7 +39,8 @@ class Order(models.Model):
     
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='Pickup')
     payment_reference = models.CharField(max_length=100, blank=True, null=True)
-    payment_proof = models.ImageField(upload_to='payment_proofs/', blank=True, null=True) 
+    payment_proof = models.ImageField(upload_to='payment_proofs/', blank=True, null=True)
+    payment_status = models.CharField(max_length=20, default='Pending') 
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)

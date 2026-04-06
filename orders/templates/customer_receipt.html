@@ -1,0 +1,113 @@
+{% extends 'base_customer.html' %}
+{% load static %}
+
+{% block title %}Order Confirmed - RBL Shop{% endblock %}
+
+{% block content %}
+<main>
+    <div class="receipt-container">
+        
+        {% if messages %}
+            <div style="text-align: center; color: green; font-weight: bold; margin-bottom: 1rem;">
+                {% for message in messages %}{{ message }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="receipt-header">
+            <h1>Order Confirmed!</h1>
+            <p>Thank you for your order. Your order has been received and is being processed.</p>
+        </div>
+
+        <div class="receipt-details">
+            <div class="receipt-section">
+                <h2>Order Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Order Number:</span>
+                        <span class="info-value">#{{ order.id|stringformat:"06d" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Order Date:</span>
+                        <span class="info-value">{{ order.created_at|date:"F d, Y h:i A" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Payment Method:</span>
+                        <span class="info-value">{{ order.get_payment_method_display }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Order Status:</span>
+                        <span class="info-value status-{{ order.status|lower }}">
+                            {{ order.status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h2>Customer Details</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value">{{ order.user.first_name }} {{ order.user.last_name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{ order.user.email }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Contact:</span>
+                        <span class="info-value">{{ order.user.contact_number }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h2>Pickup Information</h2>
+                <div class="pickup-info">
+                    <p><strong>Pickup Location:</strong></p>
+                    <p>Carkiez Store<br>
+                    Purok 3, Poblacion, Kapatagan Highway<br>
+                    Kapatagan, Lanao Del Norte</p>
+                    <p class="pickup-reminder">⚠️ Please pick up your order within 3 days after confirmation.</p>
+                </div>
+            </div>
+
+            <div class="receipt-section">
+                <h2>Order Items</h2>
+                <div class="receipt-items">
+                    {% for item in order_items %}
+                    <div class="receipt-item">
+                        <div class="receipt-item-image">
+                            {% if item.product.image_path %}
+                                <img src="{{ item.product.image_path.url }}" alt="{{ item.product.product_name }}">
+                            {% else %}
+                                <img src="{% static 'images/placeholder.jpg' %}" alt="No Image">
+                            {% endif %}
+                        </div>
+                        <div class="receipt-item-details">
+                            <p class="item-name">{{ item.product.product_name }}</p>
+                            <p class="item-quantity">Quantity: {{ item.quantity }}</p>
+                            <p class="item-price">₱{{ item.price|floatformat:2 }} each</p>
+                        </div>
+                        <div class="receipt-item-total">
+                            <p>₱{% widthratio item.price 1 item.quantity %}.00</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="receipt-total">
+                    <div class="total-row">
+                        <span>Total Amount:</span>
+                        <span class="total-amount">₱{{ order.total_price|floatformat:2 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="receipt-actions">
+            <a href="{% url 'catalog' %}" class="btn-home">Continue Shopping</a>
+        </div>
+    </div>
+</main>
+{% endblock %}

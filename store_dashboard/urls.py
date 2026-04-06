@@ -19,4 +19,6 @@ urlpatterns = [
 
     path('orders/', views.dashboard_orders, name='dashboard_orders'),
     path('orders/<int:order_id>/', views.dashboard_order_summary, name='dashboard_order_summary'),
+
+    path('payments/', views.dashboard_payments, name='dashboard_payments'),
 ]

@@ -1,15 +1,41 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Product, Category, Brand
 
-# Create your views here.
 def catalog_view(request):
-    all_products = Product.objects.all()
-    all_categories = Category.objects.all()
-    all_brands = Brand.objects.all()
+    products = Product.objects.all()
+    categories = Category.objects.all()
+    brands = Brand.objects.all()
+
+    category_id = request.GET.get('category')
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    brand_id = request.GET.get('brand')
+    if brand_id:
+        products = products.filter(brand_id=brand_id)
+
+    sort_by = request.GET.get('sort', 'newest')
+    if sort_by == 'newest':
+        products = products.order_by('-id')
+    elif sort_by == 'oldest':
+        products = products.order_by('id')
+    elif sort_by == 'price_low':
+        products = products.order_by('price')
+    elif sort_by == 'price_high':
+        products = products.order_by('-price')
+    elif sort_by == 'name_asc':
+        products = products.order_by('product_name')
+    elif sort_by == 'name_desc':
+        products = products.order_by('-product_name')
+    elif sort_by == 'stock_high':
+        products = products.order_by('-quantity')
+
     context = {
-        'products': all_products,
-        'categories': all_categories,
-        'brands': all_brands,
+        'products': products,
+        'categories': categories,
+        'brands': brands,
+        'current_sort': sort_by,
+        'product_count': products.count()
     }
     return render(request, 'customer_catalog.html', context)
 

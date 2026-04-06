@@ -50,13 +50,21 @@
                 </div>
                 <div class="info-row">
                     <span class="label">Payment Method:</span>
-                    <span class="value">{{ order.get_payment_method_display }}</span>
+                    <span class="value">
+                        <a href="{% url 'dashboard_payments' %}?search={{ order.id }}" style="color: blue; text-decoration: underline;">
+                            {{ order.get_payment_method_display }}
+                        </a>
+                    </span>
                 </div>
                 
                 {% if order.payment_reference %}
                 <div class="info-row">
                     <span class="label">Reference No:</span>
-                    <span class="value">{{ order.payment_reference }}</span>
+                    <span class="value">
+                        <a href="{% url 'dashboard_payments' %}?search={{ order.payment_reference }}" style="color: blue; text-decoration: underline;">
+                            {{ order.payment_reference }}
+                        </a>
+                    </span>
                 </div>
                 {% endif %}
                 
