@@ -21,13 +21,6 @@
             <h2>User Registration</h2>
             <p>Create your account!</p>
             <p>Please fill in the details below to register.</p>
-            {% if messages %}
-            <div class="error-messages" style="color: red; margin-bottom: 1rem; text-align: center;">
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
             <form action="{% url 'register' %}" method="post">
                 {% csrf_token %}
                 <div class="fullname-field">

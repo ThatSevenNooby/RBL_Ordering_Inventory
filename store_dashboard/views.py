@@ -8,7 +8,6 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-# The @staff_member_required decorator ensures ONLY users with is_staff=True can enter.
 @staff_member_required
 def dashboard_home(request):
     return render(request, 'store_dashboard/dashboard_home.html')
@@ -241,9 +240,20 @@ def dashboard_order_summary(request, order_id):
     
     if request.method == 'POST':
         if 'update_status' in request.POST:
-            # Grab both values from the dropdowns
-            order.status = request.POST.get('order_status')
-            order.payment_status = request.POST.get('payment_status')
+            new_order_status = request.POST.get('order_status')
+            new_payment_status = request.POST.get('payment_status')
+            
+            was_already_returned = (order.status == 'Cancelled' or order.payment_status == 'Refunded')
+            
+            is_now_returned = (new_order_status == 'Cancelled' or new_payment_status == 'Refunded')
+            
+            if is_now_returned and not was_already_returned:
+                for item in order.items.all():
+                    item.product.quantity += item.quantity
+                    item.product.save()
+
+            order.status = new_order_status
+            order.payment_status = new_payment_status
             order.save()
             
             messages.success(request, f"Order #{order.id} has been updated!")
@@ -259,7 +269,6 @@ def dashboard_order_summary(request, order_id):
 def dashboard_payments(request):
     payments = Order.objects.all()
 
-    # 1. Handle Search Filter
     search_query = request.GET.get('search', '')
     if search_query:
         payments = payments.filter(
@@ -270,8 +279,7 @@ def dashboard_payments(request):
             Q(id__icontains=search_query)
         )
 
-    # 2. Handle Sort Dropdown
-    sort_by = request.GET.get('sort', 'id_asc') # Default sort is id_asc
+    sort_by = request.GET.get('sort', 'id_asc')
     if sort_by == 'id_asc':
         payments = payments.order_by('id')
     elif sort_by == 'id_desc':
@@ -334,7 +342,6 @@ def dashboard_home(request):
 
 @staff_member_required
 def dashboard_users(request):
-    # --- 1. HANDLE FORM SUBMISSION (ADD / EDIT) ---
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         first_name = request.POST.get('first_name')
@@ -346,7 +353,6 @@ def dashboard_users(request):
         password = request.POST.get('password')
 
         if user_id:
-            # EDIT MODE: The hidden user_id field had a value
             target_user = get_object_or_404(User, id=user_id)
             target_user.first_name = first_name
             target_user.last_name = last_name
@@ -354,9 +360,7 @@ def dashboard_users(request):
             target_user.email = email
             target_user.contact_number = contact_number
             target_user.address = address
-            
-            # If the admin typed a new password, hash it and save it. 
-            # If they left it blank, it skips this and keeps the old one!
+
             if password:
                 target_user.set_password(password)
                 
@@ -364,7 +368,6 @@ def dashboard_users(request):
             messages.success(request, f"User @{target_user.username} has been successfully updated!")
             
         else:
-            # ADD MODE: The hidden user_id field was empty
             try:
                 new_user = User.objects.create(
                     first_name=first_name,
@@ -374,18 +377,14 @@ def dashboard_users(request):
                     contact_number=contact_number,
                     address=address
                 )
-                # Hashes the password securely
                 new_user.set_password(password)
                 new_user.save()
                 messages.success(request, f"New user @{new_user.username} created successfully!")
             except Exception as e:
-                # Catches errors like duplicate usernames
                 messages.error(request, f"Error creating user: A user with that username or email might already exist.")
         
         return redirect('dashboard_users')
 
-    # --- 2. HANDLE DISPLAY & SEARCH ---
-    # Get all users (excluding superusers if you want, but this gets everyone)
     users = User.objects.all().order_by('-date_joined')
     
     search_query = request.GET.get('search', '')
@@ -407,7 +406,6 @@ def dashboard_users(request):
 def delete_user(request, user_id):
     target_user = get_object_or_404(User, id=user_id)
     
-    # Safety Check: Prevent the logged-in admin from accidentally deleting themselves!
     if target_user == request.user:
         messages.error(request, "Safety alert: You cannot delete your own admin account.")
     else:
